@@ -40,4 +40,10 @@ public class BaseException extends RuntimeException {
         this.code = responseEnum.getCode();
         this.message = responseEnum.getMessage();
     }
+
+    public BaseException(String code, String message, Throwable cause) {
+        super(message, cause);
+        this.code = code;
+        this.message = message;
+    }
 }

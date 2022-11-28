@@ -2,8 +2,10 @@ package org.mortal.mtool.common.services;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.mortal.mtool.common.basic.BREnum;
+import org.mortal.mtool.common.core.annotations.BusinessService;
+import org.mortal.mtool.common.externals.IShenService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -14,13 +16,18 @@ import org.springframework.stereotype.Service;
  * @description 测试
  */
 @Service
+@BusinessService
 @Slf4j
+@RequiredArgsConstructor
 public class BookServiceImpl implements IBookService {
+    final IShenService shenService;
+
     @Override
     public String queryBook(String bookId) {
         JSONObject object = new JSONObject();
         object.put("bookId", bookId);
         object.put("bookName", "defaultName");
+        object.put("intro", shenService.regular());
         return JSON.toJSONString(object);
     }
 
@@ -29,9 +36,12 @@ public class BookServiceImpl implements IBookService {
         JSONObject object = new JSONObject();
         object.put("bookId", bookId);
         object.put("bookName", "defaultName");
-
-        BREnum.RC_ERROR.assertNotNull(object.get("cost"));
+        object.put("intro", shenService.anomaly());
 
         return JSON.toJSONString(object);
+
+//        BREnum.RC_ERROR.assertNotNull(object.get("cost"));
+//
+//        return JSON.toJSONString(object);
     }
 }

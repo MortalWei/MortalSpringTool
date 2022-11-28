@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="false" scanPeriod="60 seconds" debug="false" additivity="false">
+    <contextName>logback</contextName>
+    <property name="log.path" value="/var/log/app" />
+    <!--输出到控制台-->
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <withJansi>false</withJansi>
+        <encoder>
+            <pattern>
+<!--                %green(%d{yyyy-MM-dd HH:mm:ss}) %magenta([%thread]) %highlight(%-5level) %cyan(%logger{36}) - %msg%n-->
+                %green(%d{yyyy-MM-dd HH:mm:ss}) %magenta([%15.15t]) %highlight(%-5p) %cyan(%logger{36}) - %msg%n
+                <!--                %d{yyyy-MM-dd HH:mm:ss.SSS} -%5p ${PID:-} [%15.15t] %-40.40logger{39} : %m%n-->
+            </pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    <!--输出到滚动文件，不推荐使用，会占用服务器大量存储空间-->
+    <!--    <appender name="File" class="ch.qos.logback.core.rolling.RollingFileAppender">-->
+    <!--        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">-->
+    <!--            <fileNamePattern>${log.path}_%d{yyyy-MM-dd}.log</fileNamePattern>-->
+    <!--            <maxHistory>10</maxHistory>-->
+    <!--            <totalSizeCap>10GB</totalSizeCap>-->
+    <!--        </rollingPolicy>-->
+    <!--        <encoder>-->
+    <!--            &lt;!&ndash;格式化输出：% d:表示日期 %thread:表示线程名 %-5level:级别从左显示5个字符宽度 %msg:日志消息 %n:是换行符&ndash;&gt;-->
+    <!--            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>-->
+    <!--            <charset>UTF-8</charset>-->
+    <!--        </encoder>-->
+    <!--    </appender>-->
+    <!--将控制台日志转换为异步-->
+    <appender name="AsyncConsole" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- 不丢失日志，默认的，如果队列的 90% 已满，则会丢弃 TRACT、DEBUG、INFO 级别的日志 -->
+        <discardingThreshold>90</discardingThreshold>
+        <!-- 更改默认的队列的深度，该值会影响性能，默认值为 256 -->
+        <queueSize>2048</queueSize>
+        <!-- 添加附加的 appender，最多只能添加一个 -->
+        <appender-ref ref="Console" />
+    </appender>
+    <!--将滚动文件日志转换为异步-->
+    <!--    <appender name="AsyncFile" class="ch.qos.logback.classic.AsyncAppender">-->
+    <!--        &lt;!&ndash; 不丢失日志，默认的，如果队列的 90% 已满，则会丢弃 TRACT、DEBUG、INFO 级别的日志 &ndash;&gt;-->
+    <!--        <discardingThreshold>90</discardingThreshold>-->
+    <!--        &lt;!&ndash; 更改默认的队列的深度，该值会影响性能，默认值为 256 &ndash;&gt;-->
+    <!--        <queueSize>2048</queueSize>-->
+    <!--        &lt;!&ndash; 添加附加的 appender，最多只能添加一个 &ndash;&gt;-->
+    <!--        <appender-ref ref="File"/>-->
+    <!--    </appender>-->
+    <!-- polaris-logger添加在这里, polaris-logger本身就是异步, 不要转换 -->
+    <include resource="includedConfig.xml" />
+    <root level="info">
+        <appender-ref ref="AsyncConsole" />
+        <!--        <appender-ref ref="AsyncFile"/>-->
+        <!-- polaris-logger添加在这里 -->
+        <!--        <appender-ref ref="PolarisLoggerAsyncAppender" />-->
+    </root>
+</configuration>

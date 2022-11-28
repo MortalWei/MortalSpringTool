@@ -1,6 +1,7 @@
 package org.mortal.mtool.common.entity;
 
 import lombok.Getter;
+import org.mortal.mtool.common.basic.IResponseEnum;
 import org.mortal.mtool.common.exceptions.BaseException;
 
 /**
@@ -23,5 +24,10 @@ public class ER {
     public ER(BaseException exception) {
         this.code = exception.getCode();
         this.msg = exception.getMessage();
+    }
+
+    public ER(IResponseEnum responseEnum) {
+        this.code = responseEnum.getCode();
+        this.msg = responseEnum.getMessage();
     }
 }

@@ -2,6 +2,7 @@ package org.mortal.mtool.common.entity;
 
 import lombok.Getter;
 import org.mortal.mtool.common.basic.BREnum;
+import org.mortal.mtool.common.basic.IResponseEnum;
 
 /**
  * @param <T> 泛型
@@ -23,14 +24,13 @@ public class R<T> {
         this.data = data;
     }
 
-//    public R(String code, String msg) {
-//        this.code = code;
-//        this.msg = msg;
-//    }
-//
-//    public R(String code, String msg, T data) {
-//        this.code = code;
-//        this.msg = msg;
-//        this.data = data;
-//    }
+    public R(IResponseEnum responseEnum) {
+        this.code = responseEnum.getCode();
+        this.msg = responseEnum.getMessage();
+    }
+
+    public R(IResponseEnum responseEnum, T data) {
+        this(responseEnum);
+        this.data = data;
+    }
 }

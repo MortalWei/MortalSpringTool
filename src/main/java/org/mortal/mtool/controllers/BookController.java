@@ -1,12 +1,12 @@
 package org.mortal.mtool.controllers;
 
 import lombok.RequiredArgsConstructor;
+import org.mortal.mtool.common.basic.BREnum;
 import org.mortal.mtool.common.entity.R;
 import org.mortal.mtool.common.services.IBookService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 /**
  * @author mortal
@@ -26,9 +26,15 @@ public class BookController {
         return new R<>(service.queryBook(bookid));
     }
 
-    @GetMapping("/assert/{bookId}")
-    public R<String> getAssertBook(@PathVariable("bookId") String bookid) {
-        return new R<>(service.queryLive(bookid));
+    @PostMapping("/assert")
+    public R<String> getAssertBook(@RequestBody Map book) {
+
+        BREnum.UNAUTHORIZED.assertNotNull(book);
+//
+//        if (!book.containsKey("bookId")) {
+//        }
+
+        return new R<>(service.queryLive(book.get("bookId").toString()));
     }
 
 }
