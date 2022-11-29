@@ -21,7 +21,7 @@ import java.io.Serializable;
 public class MortalEntity implements Serializable {
     @NotEmpty(message = "id is not null or empty")
     private String id;
-    @NotEmpty(message = "id is not null or empty")
+    @NotEmpty(message = "name is not null or empty")
     private String name;
     private String age;
     private String gender;

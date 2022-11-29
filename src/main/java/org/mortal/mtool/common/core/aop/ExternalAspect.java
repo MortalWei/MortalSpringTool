@@ -6,7 +6,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-import org.mortal.mtool.common.exceptions.BaseException;
+import org.mortal.mtool.common.basic.BREnum;
 import org.mortal.mtool.common.exceptions.BusinessException;
 import org.springframework.stereotype.Component;
 
@@ -40,8 +40,9 @@ public class ExternalAspect {
             throw e;
         } catch (Exception e) {
             result = StringUtils.EMPTY;
-            cause = new BaseException("999999", "未知异常", e);
-            throw cause;
+//            cause = new BaseException("999999", "未知异常", e);
+//            throw cause;
+            BREnum.UNKNOWN_ERROR.throwUnknown(e);
         } finally {
             if (cause != null) {
                 log.info("ExternalAspect Something's wrong");

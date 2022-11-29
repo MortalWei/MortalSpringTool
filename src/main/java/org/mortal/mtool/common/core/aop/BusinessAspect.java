@@ -6,6 +6,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.mortal.mtool.common.basic.BREnum;
 import org.mortal.mtool.common.exceptions.BaseException;
 import org.mortal.mtool.common.exceptions.BusinessException;
 import org.springframework.stereotype.Component;
@@ -41,7 +42,7 @@ public class BusinessAspect {
             throw e;
         } catch (Exception e) {
             result = StringUtils.EMPTY;
-            cause = new BaseException("999999", "未知异常", e);
+            cause = new BaseException(BREnum.UNKNOWN_ERROR, e);
             throw cause;
         } finally {
             if (cause != null) {

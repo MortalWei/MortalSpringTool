@@ -1,6 +1,10 @@
 package org.mortal.mtool.common.core.interceptors;
 
 import lombok.extern.slf4j.Slf4j;
+import org.mortal.mtool.common.core.Constants;
+import org.mortal.mtool.common.core.annotations.ApiIntro;
+import org.slf4j.MDC;
+import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -19,10 +23,17 @@ import javax.servlet.http.HttpServletResponse;
 public class BasicAuthInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-//        return HandlerInterceptor.super.preHandle(request, response, handler);
-
-//        String path = request.getServletPath();
         log.info("BasicAuthInterceptor preHandle url->{}", request.getRequestURL());
+
+        if (handler instanceof HandlerMethod) {
+            HandlerMethod handlerMethod = (HandlerMethod) handler;
+            ApiIntro apiIntro = handlerMethod.getMethodAnnotation(ApiIntro.class);
+            if (apiIntro != null) {
+                log.info("api intro->{}", apiIntro.value());
+                MDC.put(Constants.ACCESS_METHOD, handlerMethod.getMethod().getName());
+                MDC.put(Constants.ACCESS_METHOD_INTRO, apiIntro.value());
+            }
+        }
         return true;
     }
 

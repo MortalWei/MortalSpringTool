@@ -28,7 +28,7 @@ public class ShenServiceImpl implements IShenService {
         object.put("bookId", "100010");
         object.put("bookName", "defaultName");
 
-        BREnum.RC_ERROR.assertNotNull(object.get("cost"));
+        BREnum.PARAM_VALIDATE_ERROR.assertNotNull(object.get("cost"));
         return "This is an abnormal piece of data";
     }
 }

@@ -2,7 +2,9 @@ package org.mortal.mtool.common;
 
 //import org.mortal.mtool.common.exceptions.BaseException;
 
+import org.mortal.mtool.common.entity.ValidationResult;
 import org.mortal.mtool.common.exceptions.BaseException;
+import org.mortal.mtool.common.utils.ValidateUtils;
 
 /**
  * @author mortal
@@ -39,5 +41,22 @@ public interface Assert {
         if (obj == null) {
             throw newException(args);
         }
+    }
+
+    /**
+     * 实体参数校验
+     *
+     * @param data 待校验的实体数据
+     * @param <T>  实体类
+     */
+    default <T> void assertProperty(T data) {
+        ValidationResult result = ValidateUtils.validate(data);
+        if (result.isHasErrors()) {
+            throw newException(result.getMessage());
+        }
+    }
+
+    default void throwUnknown(Throwable cause){
+        throw newException(cause);
     }
 }

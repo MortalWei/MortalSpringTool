@@ -3,6 +3,11 @@ package org.mortal.mtool.common.core.filters;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.mortal.mtool.common.advanced.executer.AsyncAgent;
+import org.mortal.mtool.common.advanced.generators.IdGenerator;
+import org.mortal.mtool.common.core.Constants;
+import org.mortal.mtool.common.entity.AccessLog;
+import org.slf4j.MDC;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -12,6 +17,7 @@ import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 import org.springframework.web.util.WebUtils;
 
+import javax.annotation.Nonnull;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebFilter;
@@ -46,13 +52,14 @@ public class BasicAccessFilter extends OncePerRequestFilter {
     );
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-
+    protected void doFilterInternal(HttpServletRequest request, @Nonnull HttpServletResponse response,
+                                    @Nonnull FilterChain filterChain) throws ServletException, IOException {
         log.info("BasicAccessFilter doFilterInternal url->{}", request.getRequestURL());
+        MDC.put(Constants.MDC_REQUEST_ID, IdGenerator.nextId().toString());
+
         final String requestMethod = request.getMethod();
         final boolean shouldWrapMethod = StringUtils.equalsIgnoreCase(requestMethod, HttpMethod.PUT.name())
                 || StringUtils.equalsIgnoreCase(requestMethod, HttpMethod.POST.name());
-//        final boolean shouldWrapMethod = true;
 
         final boolean isFirstRequest = !isAsyncDispatch(request);
 
@@ -67,7 +74,6 @@ public class BasicAccessFilter extends OncePerRequestFilter {
         try {
             filterChain.doFilter(requestToUse, responseToUse);
         } catch (Exception e) {
-//            t = e;
             log.error("BasicAccessFilter catch->{}", e.getMessage(), e);
             throw e;
         } finally {
@@ -80,19 +86,33 @@ public class BasicAccessFilter extends OncePerRequestFilter {
     }
 
     private void doSaveAccessLog(HttpServletRequest request, HttpServletResponse response, long startTime, long endTime, Throwable t) {
-        final String requestString = isUpload(request) ? StringUtils.EMPTY : getRequestString(request);
-        final String responseString = isDownload(response) ? StringUtils.EMPTY : getResponseString(response);
+        if (isAsyncStarted(request)) {
+            copyResponse(response);
+            return;
+        }
 
-        log.info("doSaveAccessLog requestString->{}", requestString);
-        log.info("doSaveAccessLog responseString->{}", responseString);
+        try {
+            final String requestString = isUpload(request) ? StringUtils.EMPTY : getRequestString(request);
+            final String responseString = isDownload(response) ? StringUtils.EMPTY : getResponseString(response);
+            log.info("doSaveAccessLog requestString->{}", requestString);
+            log.info("doSaveAccessLog responseString->{}", responseString);
 
-        copyResponse(response);
+            AccessLog accessLog = AccessLog.ok(requestString, responseString, startTime, endTime);
+            accessLog.setHttpStatus(response.getStatus());
+            accessLog.setPath(request.getServletPath());
+            accessLog.setMethodType(request.getMethod());
 
+            AsyncAgent.post(accessLog);
+        } catch (Exception e) {
+
+        } finally {
+            copyResponse(response);
+        }
     }
 
     private void copyResponse(final HttpServletResponse response) {
         final ContentCachingResponseWrapper wrapper = WebUtils.getNativeResponse(response, ContentCachingResponseWrapper.class);
-        if (nullToResponse(wrapper)) {
+        if (wrapper != null) {
             try {
                 wrapper.copyBodyToResponse();
             } catch (IOException ignored) {
@@ -117,39 +137,28 @@ public class BasicAccessFilter extends OncePerRequestFilter {
     }
 
     private String getRequestString(final HttpServletRequest request) {
-        final ContentCachingRequestWrapper wrapper = WebUtils.getNativeRequest(request, ContentCachingRequestWrapper.class);
-        if (NullToRequest(wrapper)) {
+        final ContentCachingRequestWrapper contentCachingRequestWrapper = WebUtils.getNativeRequest(request, ContentCachingRequestWrapper.class);
+        if (contentCachingRequestWrapper != null) {
             try {
-                final byte[] buffer = wrapper.getContentAsByteArray();
-//                return new String(buffer, wrapper.getCharacterEncoding()).replaceAll("\n|\r", "");
-                return new String(buffer, StandardCharsets.UTF_8.name()).replaceAll("\n|\r", "");
+                final byte[] buffer = contentCachingRequestWrapper.getContentAsByteArray();
+                return new String(buffer, StandardCharsets.UTF_8.name()).replaceAll("[\n\r]", "");
             } catch (UnsupportedEncodingException e) {
                 return "[UNKNOWN]";
             }
         }
         return StringUtils.EMPTY;
-    }
-
-    private boolean NullToRequest(ContentCachingRequestWrapper wrapper) {
-        return wrapper != null;
     }
 
     private String getResponseString(final HttpServletResponse response) {
-        final ContentCachingResponseWrapper wrapper = WebUtils.getNativeResponse(response, ContentCachingResponseWrapper.class);
-        if (nullToResponse(wrapper)) {
+        final ContentCachingResponseWrapper contentCachingResponseWrapper = WebUtils.getNativeResponse(response, ContentCachingResponseWrapper.class);
+        if (contentCachingResponseWrapper != null) {
             try {
-                final byte[] buffer = wrapper.getContentAsByteArray();
-//                return new String(buffer, wrapper.getCharacterEncoding()).replaceAll("\n|\r", "");
-                return new String(buffer, StandardCharsets.UTF_8.name()).replaceAll("\n|\r", "");
+                final byte[] buffer = contentCachingResponseWrapper.getContentAsByteArray();
+                return new String(buffer, StandardCharsets.UTF_8.name()).replaceAll("[\n\r]", "");
             } catch (UnsupportedEncodingException e) {
                 return "[UNKNOWN]";
             }
         }
         return StringUtils.EMPTY;
     }
-
-    private boolean nullToResponse(ContentCachingResponseWrapper wrapper) {
-        return wrapper != null;
-    }
-
 }
