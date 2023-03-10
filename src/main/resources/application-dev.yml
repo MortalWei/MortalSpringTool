@@ -1,0 +1,19 @@
+spring:
+  redis:
+    password: "redis6-test"
+    timeout: 2000
+    cluster:
+      nodes:
+        - 10.227.102.49:6379
+        - 10.227.102.49:6380
+        - 10.227.102.49:6381
+        - 10.227.102.50:6379
+        - 10.227.102.50:6380
+        - 10.227.102.50:6381
+#      max-redirects: 3
+    lettuce:
+      pool:
+        max-active: 50
+        max-idle: 50
+        min-idle: 5
+        max-wait: 2000

@@ -1,15 +1,18 @@
 package org.mortal.mtool.controllers;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import lombok.RequiredArgsConstructor;
 import org.mortal.mtool.common.basic.BREnum;
 import org.mortal.mtool.common.core.annotations.ApiIntro;
-import org.mortal.mtool.common.core.annotations.BaseIntro;
 import org.mortal.mtool.common.entity.MortalEntity;
 import org.mortal.mtool.common.entity.R;
 import org.mortal.mtool.common.services.IBookService;
+import org.mortal.mtool.common.utils.RedisUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.websocket.server.PathParam;
 import java.util.Map;
 
 /**
@@ -24,6 +27,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class BookController {
     final IBookService service;
+
+    final RedisUtils redisUtils;
 
     @GetMapping("/b/{bookId}")
     @ApiIntro(value = "[测试方法一]", tags = "测试")
@@ -44,4 +49,30 @@ public class BookController {
         return new R<>(service.queryMortal(data));
     }
 
+    @GetMapping("/redis/take")
+    @ApiIntro(value = "[测试获取缓存]", tags = "测试")
+    public R<Object> getRedisValue(@PathParam("redisKey") String redisKey) {
+        Object redisValue = redisUtils.get(redisKey);
+        return new R<>(redisValue);
+    }
+
+    @PostMapping("/redis/put")
+    @ApiIntro(value = "[测试设置缓存]", tags = "测试")
+    public R<Boolean> setRedisValue(@PathParam("redisKey") String redisKey, @RequestBody String body) {
+        JSONObject object = JSON.parseObject(body);
+
+        boolean flag = redisUtils.set(redisKey, object, 3600);
+        return new R<>(flag);
+    }
+
+    @GetMapping("/redis/test")
+    public R<Object> getRedisTest(@PathParam("redisTest") String redisTest) {
+        String[] arr = new String[]{"a", "b", "c", "d"};
+
+        redisUtils.set("testArr", arr, 3600);
+
+        Object arrResult = redisUtils.get("testArr");
+
+        return new R<>(arrResult);
+    }
 }
